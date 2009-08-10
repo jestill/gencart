@@ -1,10 +1,11 @@
-Package: gengis
+Package: gencart
 Version: 0.1-1
-Date: 2004-09-22
-Title:Genomic Geographic Information System
-Author: James Estill <jestill@arches.uga.edu>
-Maintainer: James Estill <jestill@arches.uga.edu>
+Date: 2009-08-22
+Title: Genome Cartology in R
+Author: James Estill <JamesEstill@gmail.com>
+Maintainer: James Estill <JamesEstill@gmail.com>
 Description: Functions for the analysis of spatial distribution patterns in genomic data.
 Depends: Currently no dependancies
-License: GPL
+License: GPL version 3
 Built: R 1.6.2; i586-pc-linux-gnu; Mon Jan 13 12:50:30 EST 2003
+URL: http://gencart.sourceforge.net/
