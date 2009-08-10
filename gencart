@@ -1,0 +1,27 @@
+
+
+
+
+
+# The GetArg subfunction allows for arguments to be passed
+# to the R script from the command line
+GetArg <-function(strSwitch)
+
+  {
+    ComArgs = commandArgs()
+    numArgs = (length(ComArgs))
+
+    for (i in 1:numArgs)
+      {
+
+        if (ComArgs[i] == strSwitch)
+          {
+
+            myVar <- ComArgs[i+1]
+          }
+
+      }
+  GetArg <- myVar
+
+  }
+

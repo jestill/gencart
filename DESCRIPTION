@@ -1,0 +1,10 @@
+Package: gengis
+Version: 0.1-1
+Date: 2004-09-22
+Title:Genomic Geographic Information System
+Author: James Estill <jestill@arches.uga.edu>
+Maintainer: James Estill <jestill@arches.uga.edu>
+Description: Functions for the analysis of spatial distribution patterns in genomic data.
+Depends: Currently no dependancies
+License: GPL
+Built: R 1.6.2; i586-pc-linux-gnu; Mon Jan 13 12:50:30 EST 2003
