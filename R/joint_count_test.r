@@ -12,9 +12,11 @@
 # the mapping onto a torus to avoid edge effects.           |
 #                                                           |
 #-----------------------------------------------------------+
-# For the following to work the data MUST be listed in the proper order (ie. presort the list by midpoint before doing the analysis)
+# NOTE: For the following to work the data MUST be listed in the proper order
+# (ie. presort the list by midpoint before doing the analysis)
+
 # LOAD THE SPDEP LIBRARY
-library(spdep)
+library(spdep);
 
 #-----------------------------+
 # ROOKS CASE JOIN COUNT       |
@@ -22,7 +24,7 @@ library(spdep)
 #-----------------------------+
 # Input is Arabidopsis chromosome 5
 # This is OLD data from TIGR version 5 of the arabidopsis 
-InputFile = "../data/ArabStrandr5chr5.txt";
+InputFile <- "../data/ArabStrandr5chr5.txt";
 # Import data to the GeneData object
 GeneData <- read.table(InputFile, header=T);
 # Determine the number of genes for drawing the chromosome nb
@@ -33,4 +35,4 @@ GeneData <- GeneData[sort.list(GeneData$MidPoint),];
 # Generate the neighbors files
 chrom.nb <- cell2nb( numgenes, 1, type="rook", torus=FALSE);
 # This may work if the GeneData$Strand is automatically used as a factor data type
-Result5 <-  joincount.multi(GeneData$Strand, nb2listw(chrom.nb, style="B"));
+Result5 <- joincount.multi(GeneData$Strand, nb2listw(chrom.nb, style="B"));
