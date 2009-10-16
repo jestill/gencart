@@ -1,4 +1,5 @@
 
 --This line, and those below, will be ignored--
 
-A    data/CHR4genes.gff
+A    R/join_count_test.r
+D    R/join_count_test.t
