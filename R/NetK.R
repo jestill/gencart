@@ -33,6 +33,9 @@
 #                                                                       #
 #########################################################################
 
+# The following function will only work on a single connected network, chromosome
+# at a time.
+
 GenKh <- function(CritDistance, Length, Features)
 
 { # Begin of GenKh function
@@ -74,10 +77,12 @@ GenKh <- function(CritDistance, Length, Features)
       } # End of j
   }   # End of for i
   
-print (paste("Sum",Sum))
-print (paste("Density",Density))
-Kh = Density*Sum    # calcluate Kh
-Kh                  # this will return the calculate Kh value
+print (paste("Sum",Sum));
+print (paste("Density",Density));
+# calcluate Kh
+Kh = Density*Sum;    
+  
+Kh;                  # this will return the calculate Kh value
 } # End of GenKh function
 
 
