@@ -15,6 +15,9 @@
 #
 ##########################################################
 
+# The following library is used to derive substrings of tag values
+# from the input GFF3 files
+library(stringr);
 
 #-----------------------------------------------------------+
 # SUBFUNCTION: gff2r                                        |
@@ -60,6 +63,227 @@ gff2r <- function (infile, header="FALSE") {
   return (dframe);
   
 }
+
+
+loadGFF<- function (infile, header="FALSE") {
+
+  # As currently written the substring functions
+  # require stringr
+  
+  # GFF HEADERS
+  gffnames = c(
+    "seqname",
+    "source",
+    "feature",
+    "start",
+    "end",
+    "score",
+    "strand",
+    "frame",
+    "attribute");
+
+  # READ THE TABLE, using a basic read table command for now
+  # This will also reseat any exsting header names to the
+  # commonly used header names for GFF
+  if (header == FALSE) {
+    dframe <- read.table(infile, header=F, col.names=gffnames, 
+                         stringsAsFactors=F);
+  } else {
+    dframe <- read.table(infile, header=T, col.names=gffnames,
+                         stringsAsFactors=F);
+  }
+
+
+  # Length of the features
+  dframe$length <- abs(dframe$end - dframe$start) + 1;
+
+  # Some basic information about the data frame, not currently used
+  numCols = length(dframe);
+  numRows = length(dframe$attribute);
+  
+  #-----------------------------+
+  # SUPPORT GFF3 ATTRIBUTE      |
+  # TAGS                        |
+  # CURRENTLY SUPPORTS          |
+  #  - ID                       |
+  #  - Name                     |
+  #  - Parent                   |
+  #-----------------------------+
+  # Extracting ID values from GFF3
+  # First look for strings terminated by semicolons starting with ID, then
+  # add values terminated by end of line. The strings are then cleaned up
+  # by removing the tag value and a terminating semicolon if one
+  # exists
+  dframe$ID <- str_extract(dframe$attribute, "ID=.*;");
+  dframe$ID <- ifelse( is.na(dframe$ID),
+                      str_extract(dframe$attribute, "ID=.*$") ,
+                      dframe$ID);
+  dframe$ID <- sub("ID=", '', dframe$ID);
+  dframe$ID <- sub(";", '', dframe$ID);
+
+  # Name values
+  dframe$Name <- str_extract(dframe$attribute, "Name=.*;");
+  dframe$Name <- ifelse( is.na(dframe$Name),
+                      str_extract(dframe$attribute, "Name=.*$") ,
+                      dframe$Name);
+  dframe$Name <- sub("Name=", '', dframe$Name);
+  dframe$Name <- sub(";", '', dframe$Name);
+
+  # Parent values
+  dframe$Parent <- str_extract(dframe$attribute, "Parent=.*;");
+  dframe$Parent <- ifelse( is.na(dframe$Parent),
+                      str_extract(dframe$attribute, "Parent=.*$") ,
+                      dframe$Parent);
+  dframe$Parent <- sub("Parent=", '', dframe$Parent);
+  dframe$Parent <- sub(";", '', dframe$Parent);
+  
+  #///////////////////////////////////////////////////////////
+  # TO DO :
+  #///////////////////////////////////////////////////////////
+  # Lookup for child parent relationships, should be able to
+  # use netsted integers for these searches. But the algorithm
+  # to fill this will be complicated in R
+  
+  # Return the GFF data frame
+  return (dframe);
+  
+}
+
+
+#///////////////////////////////////////////////////////////
+# Summarize a GFF file passed to the function
+# as a dataframe
+#///////////////////////////////////////////////////////////
+summarizeGFF <- function (dframe, genomeName = "Genome",
+                          fileRoot ="genome") {
+
+  # Get the nonredundant list of scaffolds and report length
+  
+  # Set some file paths (These will be PNG files)
+  outExonCountImage = (paste(fileRoot, "_exon_count.png",  sep=""));
+  outCDNALengthImage = (paste(fileRoot, "_gene_summary.png",  sep=""));
+  outSummaryImage = (paste(fileRoot, "_gene_summary.png",  sep=""));
+  outSummaryFile = (paste( fileRoot,"_genome_report.txt",  sep=""));
+  
+  # Get the nonredundant list of features and counts and report names
+  # and values if < 100 features
+
+  # Get the subset of just the exons to work with
+  exons <- subset(dframe, dframe$feature=="exon");
+  introns <- subset(dframe, dframe$feature=="intron");
+
+  exonSummary <- summary(exons);
+
+  # This will break the sources into individual colums, so if the
+  # exons are derived from different sources, this will be relfected
+  # in the output
+
+  # Number of exons per gene
+  exonsPerGene <- table(exons$Parent, exons$source);
+  # The following is the list of exonsPerGene sorted
+  exonCountList <- sort(unique(exonsPerGene));
+  
+  # Get the max vale from the unique list of the exon count
+  # thus exonCountHist$breaks is the number of exons and
+  #      exonCountHist$counts is the number of genes with that many exons
+# Commented out the following since they are done below  
+#  exonCountHist <- hist(exonsPerGene,
+#                        max(unique(exonsPerGene)), col="green",
+#                        main = c(genomeName, "Exons per Gene") );
+  # Generate historgram of exon lengths
+
+  # Generate histogram of gene lengths
+  geneLengths <- tapply(exons$length, exons$Parent, FUN=sum);
+# Commented out the following since they are done below  
+#  geneLengthHist <- hist(geneLengths, 150,
+#                           col="red", xlim = c(0,8000),
+#                           main= c(genomeName, "cDNA Length"),
+#                           xlab="cDNA Length (bp)");
+
+
+
+  
+  # Test of drawing plots ot outfile
+  #  par(new=T);
+  oldpar <- par(no.readonly=TRUE)
+  par <- par(mfrow = c(4,1), pty = "m", bg="white");
+
+  # Do the histograms
+  exonCountHist <- hist(exonsPerGene,
+                        max(unique(exonsPerGene)), col="green",
+                        main = c(genomeName, "Exons per Gene"),
+                        xlab="Count of exons Per Gene",
+                        xlim = c(0,30) );
+
+  geneLengthHist <- hist(geneLengths, 150,
+                         col="red", xlim = c(0,8000),
+                         main= c(genomeName, "cDNA Length"),
+                         xlab="cDNA Length (bp)");
+
+  exonLengthHist <-hist(exons$length, 3000,
+                        xlim = c(0,2000), col="blue",
+                        xlab="Exon Length (bp)",
+                        main = c(genomeName, "Exon Length"));
+
+  exonLengthHist <-hist(introns$length, 3000,
+                        xlim = c(0,2000), col="brown",
+                        xlab="Intron Length (bp)",
+                        main = c(genomeName, "Intron Length"));
+  
+  # PLOT THE IMAGE
+  dev.copy (png, filename=outSummaryImage, pointsize = 14,
+            height=1000, width=720, bg="white" );
+  dev.off();
+
+  par(oldpar);
+
+#  result <- list ( exonLengthSummary = summary(exons$length),
+#                   exonLengthHistogram =  exonLengthHist);
+
+  # The following just provides the summary for the values and
+  # not the full histograms, althought these can be returned
+  # as shown above.
+  result <- list ( exonLengthSummary = summary(exons$length),
+                   cDNALengthSummary = summary(geneLengths),
+                   intronLengthSummary =  summary(introns$length),
+                   exonCountSummary = summary(as.vector(exonsPerGene))
+                  );
+  
+  return(result);
+  
+}
+
+
+# Given a tag as input return the value
+# assumes that input is a list that has already
+# been split by ;
+atrKeyVal <- function ( atrList, tag ) {
+
+  # Set default of tag value
+  tagValue <- NA;
+  
+  # Goal is to take a list
+  # return the value for a given tag
+  # ie take list of attribute values and
+  # return fa
+
+  # First split to tag value pairs
+  splitList <- strsplit(atrList, "=");
+
+  # Then fetch the value of interest
+  # First make sure that grep returns a valu
+  rowToFetch <- grep( tag , splitList);
+
+  if (length(rowToFetch) != 0 ) {
+    tagValue <- splitList[[rowToFetch]][2];
+  }
+  
+  return(tagValue);
+  
+}
+
+
+
 
 #-----------------------------------------------------------+
 # DATA CATEGORIZATION                                       |
