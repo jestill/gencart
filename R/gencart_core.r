@@ -4,7 +4,7 @@
 #  AUTHOR: James C. Estill
 # CONTACT: jestill_#_uga.edu
 # STARTED: 2/13/2005
-# UPDATED: 07/13/2009
+# UPDATED: 11/04/2011
 #
 # DESCRIPTION:
 # GenCart core functions. Currently just for me to use
@@ -95,8 +95,10 @@ loadGFF<- function (infile, header="FALSE") {
 
 
   # Length of the features
-  dframe$length <- abs(dframe$end - dframe$start) + 1;
-
+  dframe$length <- Abs(dframe$end - dframe$start) + 1;
+  # Midpoint, will round to make this an integer
+  dframe$midpoint <- round((dframe$start + dframe$end)/2);
+  
   # Some basic information about the data frame, not currently used
   numCols = length(dframe);
   numRows = length(dframe$attribute);
@@ -157,6 +159,8 @@ loadGFF<- function (infile, header="FALSE") {
 summarizeGFF <- function (dframe, genomeName = "Genome",
                           fileRoot ="genome") {
 
+  # TO DO : Drop extreme values for better historgram rendering
+  
   # Get the nonredundant list of scaffolds and report length
   
   # Set some file paths (These will be PNG files)
@@ -225,10 +229,12 @@ summarizeGFF <- function (dframe, genomeName = "Genome",
                         xlab="Exon Length (bp)",
                         main = c(genomeName, "Exon Length"));
 
-  exonLengthHist <-hist(introns$length, 3000,
-                        xlim = c(0,2000), col="brown",
-                        xlab="Intron Length (bp)",
-                        main = c(genomeName, "Intron Length"));
+  if ( length(introns$length) !=0 ) {
+    exonLengthHist <-hist(introns$length, 3000,
+                          xlim = c(0,2000), col="brown",
+                          xlab="Intron Length (bp)",
+                          main = c(genomeName, "Intron Length"));
+  }
   
   # PLOT THE IMAGE
   dev.copy (png, filename=outSummaryImage, pointsize = 14,
